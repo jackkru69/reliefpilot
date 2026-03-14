@@ -205,7 +205,7 @@ function sessionDetailHtml(session: Awaited<ReturnType<typeof getSession>>): str
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/highlight.min.js"><\/script>
   <script>
     document.getElementById('questionContent').innerHTML = marked.parse(${JSON.stringify(session.question.message)});
-    hljs.highlightAll();
+    if (typeof hljs !== 'undefined') hljs.highlightAll();
 
     // Add copy buttons to code blocks
     document.querySelectorAll('.question pre code').forEach(block => {

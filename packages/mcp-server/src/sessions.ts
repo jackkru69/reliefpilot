@@ -79,19 +79,25 @@ export async function createSession(
 }
 
 export async function resolveSession(id: string, responseText: string): Promise<boolean> {
-  const resolver = pendingResolvers.get(id);
-  if (!resolver) return false;
-
-  // Update file
-  const raw = await readFile(sessionPath(id), 'utf-8');
+  // Update file on disk (works for both live and orphaned sessions)
+  let raw: string;
+  try {
+    raw = await readFile(sessionPath(id), 'utf-8');
+  } catch {
+    return false; // Session file not found
+  }
   const entry: SessionEntry = JSON.parse(raw);
+  if (entry.status === 'resolved') return false; // Already resolved
   entry.status = 'resolved';
   entry.response = { text: responseText, respondedAt: new Date().toISOString() };
   await writeFile(sessionPath(id), JSON.stringify(entry, null, 2), 'utf-8');
 
-  // Resolve the waiting Promise
-  pendingResolvers.delete(id);
-  resolver(responseText);
+  // Resolve the waiting Promise if there's an in-memory resolver
+  const resolver = pendingResolvers.get(id);
+  if (resolver) {
+    pendingResolvers.delete(id);
+    resolver(responseText);
+  }
   return true;
 }
 
