@@ -7,6 +7,18 @@ import { createSession, initSessionStore } from './sessions.js';
 import { tools } from './tools.js';
 import { notifyClients, startWebServer } from './web.js';
 
+// New tool modules
+import { fetchUrl } from './tools_fetch.js';
+import { duckduckgoSearch, googleSearch, exaSearch, feloSearch, linkupSearch } from './tools_search.js';
+import { context7ResolveLibraryId, context7GetLibraryDocs } from './tools_context7.js';
+import {
+  githubSearchCode, githubSearchIssues, githubSearchRepositories,
+  githubGetFileContents, githubGetDirectoryContents, githubIssueRead,
+  githubListIssues, githubPullRequestRead, githubListPullRequests,
+  githubListReleases, githubGetLatestRelease,
+} from './tools_github.js';
+import { codeChecker } from './tools_code_checker.js';
+
 // ── Configuration ──────────────────────────────────────────────────
 
 const WEB_PORT = parseInt(process.env['RELIEF_WEB_PORT'] ?? '3120', 10);
@@ -100,6 +112,126 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const result = await runRipgrep({ pattern, paths, glob, caseMode, contextLines });
       const output = result.stdout || result.stderr || 'No matches found';
       return { content: [{ type: 'text', text: output }] };
+    }
+
+    // ── Fetch & Search ───────────────────────────────────────────────
+
+    case 'ai_fetch_url': {
+      const text = await fetchUrl(args as { url: string; topic?: string; includeLinks?: boolean });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'duckduckgo_search': {
+      const text = await duckduckgoSearch(args as { query: string; page?: number; numResults?: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'google_search': {
+      const text = await googleSearch(args as {
+        query: string; num_results?: number; site?: string; language?: string;
+        dateRestrict?: string; exactTerms?: string; page?: number; resultsPerPage?: number; sort?: string;
+      });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'exa_search': {
+      const text = await exaSearch(args as {
+        query: string; maxResults?: number; domain?: string; includeText?: string; excludeText?: string;
+      });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'felo_search': {
+      const text = await feloSearch(args as { query: string });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'linkup_search': {
+      const text = await linkupSearch(args as { query: string; maxResults?: number; onlySearchTheseDomains?: string[] });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    // ── Context7 ─────────────────────────────────────────────────────
+
+    case 'context7_resolve-library-id': {
+      const text = await context7ResolveLibraryId(args as { libraryName: string });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'context7_get-library-docs': {
+      const text = await context7GetLibraryDocs(args as {
+        context7CompatibleLibraryID: string; topic?: string; tokens?: number;
+      });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    // ── GitHub ───────────────────────────────────────────────────────
+
+    case 'github_search_code': {
+      const text = await githubSearchCode(args as { query: string; per_page?: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_search_issues': {
+      const text = await githubSearchIssues(args as { query: string; per_page?: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_search_repositories': {
+      const text = await githubSearchRepositories(args as { query: string; per_page?: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_get_file_contents': {
+      const text = await githubGetFileContents(args as { owner: string; repo: string; path: string; ref?: string });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_get_directory_contents': {
+      const text = await githubGetDirectoryContents(args as { owner: string; repo: string; path?: string; ref?: string });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_issue_read': {
+      const text = await githubIssueRead(args as { owner: string; repo: string; issue_number: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_list_issues': {
+      const text = await githubListIssues(args as { owner: string; repo: string; per_page?: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_pull_request_read': {
+      const text = await githubPullRequestRead(args as {
+        method: string; owner: string; repo: string; pull_number: number; per_page?: number; page?: number;
+      });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_list_pull_requests': {
+      const text = await githubListPullRequests(args as {
+        owner: string; repo: string; state?: string; head?: string; base?: string;
+        sort?: string; direction?: string; per_page?: number; page?: number;
+      });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_list_releases': {
+      const text = await githubListReleases(args as { owner: string; repo: string; per_page?: number });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    case 'github_get_latest_release': {
+      const text = await githubGetLatestRelease(args as { owner: string; repo: string });
+      return { content: [{ type: 'text', text }] };
+    }
+
+    // ── Code quality ─────────────────────────────────────────────────
+
+    case 'code_checker': {
+      const text = await codeChecker(args as { cwd?: string; tool?: 'tsc' | 'eslint' | 'both' });
+      return { content: [{ type: 'text', text }] };
     }
 
     default:
