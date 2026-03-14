@@ -1,0 +1,38 @@
+{
+  "name": "reliefpilot-mcp-server",
+  "version": "0.1.0",
+  "description": "Relief Pilot MCP Server — persistent background sessions with web dashboard",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "reliefpilot-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js && node --watch dist/index.js",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.19.1",
+    "hono": "^4.7.0",
+    "@hono/node-server": "^1.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "reliefpilot",
+    "background-agent",
+    "persistent-sessions",
+    "human-in-the-loop"
+  ],
+  "author": "Ivan Mezentsev",
+  "license": "MIT"
+}

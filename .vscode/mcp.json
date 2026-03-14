@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "reliefpilot": {
+      "command": "node",
+      "args": ["${workspaceFolder}/packages/mcp-server/dist/index.js"],
+      "env": {
+        "RELIEF_WEB_PORT": "3120"
+      }
+    }
+  }
+}
